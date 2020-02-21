@@ -1,0 +1,7 @@
+[package]
+description = Internet Content Adaptation Protocol (ICAP) Analyzer for Bro and Zeek.
+tags = bro plugin, zeek plugin, protocol analyzer, internet content adaptation protocol, icap, https plain text
+script_dir = scripts
+depends = 
+     bro >=2.5.0
+build_command = ./configure --bro-dist=%(bro_dist)s && make
