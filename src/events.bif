@@ -1,0 +1,258 @@
+#
+# File: events.bif
+# Date: 20161024 
+#
+# Bro Internet Content Adaptation Protocol (ICAP) Analyzer.
+#
+# Copyright 2016 The MITRE Corporation.  All rights reserved.
+# Approved for public release.  Distribution unlimited.  Case number 16-3871.
+#
+
+#
+# ICAP Events
+#
+# See RFC 3507, dated April 2003, for more information about ICAP.
+#
+#  - https://tools.ietf.org/html/rfc3507
+#  - https://tools.ietf.org/html/draft-stecher-icap-subid-00
+#  - https://www.icap-forum.org/documents/specifications/draft-icap-ext-partial-content-07.txt
+#
+
+
+##
+## Generated for ICAP requests.  This event is generate after the request's
+## initial line is parsed, and before any :bro:id:`icap_header` events are
+## raised.
+##
+## c: The connection.
+##
+## method: The ICAP method extracted from the request (e.g., ``REQMOD``, ``RESPMOD``).
+##
+## original_URI: The unprocessed URI as specified in the request.
+##
+## version_name: The portion of the version corresponding to the protocol name
+##               (e.g., ``ICAP/``).
+##
+## version_value: The version number specified in the request (e.g., ``1.0``).
+##
+## .. bro:see:: icap_body_weird icap_chunk_weird icap_done icap_error icap_header
+##    icap_options icap_response_line
+##
+event icap_request_line%(
+	c		: connection,
+	method		: string,
+	original_URI	: string,
+	version_name	: string,
+	version_value	: string
+%);
+
+
+##
+## Generated for ICAP responses.  This event is generate after the response's
+## initial line is parsed, and before any :bro:id:`icap_header` events are
+## raised.
+##
+## c: The connection.
+##
+## status_code: The numerical response code returned by the server.
+##
+## reason: The textual description returned by the server, describing the code.
+##
+## version_name: The portion of the version corresponding to the protocol name
+##               (e.g., ``ICAP/``).
+##
+## version_value: The version number specified in the request (e.g., ``1.0``).
+##
+## .. bro:see:: icap_body_weird icap_chunk_weird icap_done icap_error icap_header
+##    icap_options icap_request_line
+##
+event icap_response_line%(
+	c		: connection,
+	status_code	: string,
+	reason		: string,
+	version_name	: string,
+	version_value	: string
+%);
+
+
+##
+## Generated for ICAP headers.  This event is generate after each header
+## line is parsed.
+##
+## c: The connection.
+##
+## is_orig: True if the header was sent by the originator of the TCP connection.
+##
+## name: The name of the header.
+##
+## value: The value of the header.
+##
+## .. bro:see:: icap_body_weird icap_chunk_weird icap_done icap_error icap_options
+##    icap_request_line icap_response_line
+##
+event icap_header%(
+	c		: connection,
+	is_orig		: bool,
+	name		: string,
+	value		: string
+%);
+
+
+##
+## Generated if an unexpected ICAP body format is encountered when parsing
+## the ``ICAP Encapsulated Header (IEH)`` field.
+##
+## c: The connection.
+##
+## is_orig: True if the header was sent by the originator of the TCP connection.
+##
+## req_hdr_flag: The IEH indicates ``req-hdr`` field is present.
+##
+## req_body_flag: The IEH indicates ``req-body`` field is present.
+##
+## rsp_hdr_flag: The IEH indicates ``rsp-hdr`` field is present.
+##
+## rsp_body_flag: The IEH indicates ``rsp-body`` field is present.
+##
+## options_flag: The IEH indicates ``opt-body`` field is present.
+##
+## null_body_flag: The IEH indicates the ``null-body`` field is present.
+##
+##
+## Expected body formats are derived from RFC 3507, which are described below:
+##
+## NONE:    ICAP message body not present (e.g., status code 204 ``No
+##          modifications needed`` response does not have a body section).
+##
+## RESPMOD: (a)req-hdr, (c)rsp-hdr, (d)rsp-body
+## RESPMOD: (a)req-hdr, (c)rsp-hdr, (f)null-body
+## RESPMOD: (c)rsp-hdr, (d)rsp-body
+## RESPMOD: (d)rsp-body
+##
+## REQMOD:  (a)req-hdr, (b)req-body
+## REQMOD:  (a)req-hdr, (f)null-body
+## REQMOD:  (b)req-body
+##
+## OPTIONS: (e)opt-body
+##
+## Be mindful of ``null-body`` field, given it may appear within the ICAP header.
+## It is a valid field, per RFC 3507, and it may (or may not) get flagged as
+## ``weird`` if we have not accounted for it in all possible cases.
+##
+## .. bro:see:: icap_chunk_weird icap_done icap_error icap_header icap_options
+##    icap_request_line icap_response_line
+##
+event icap_body_weird%(
+	c			: connection,
+	is_orig			: bool,
+	req_hdr_flag		: bool,
+	req_body_flag		: bool,
+	rsp_hdr_flag		: bool,
+	rsp_body_flag		: bool,
+	options_flag		: bool,
+	null_body_flag		: bool
+%);
+
+
+##
+## Generated when extracting the chunk-encoded HTTP message body from the
+## ICAP message body, e.g., the ``req-body`` and ``rsp-body`` sections.
+## This event is generated if the ``content-length`` value from the HTTP
+## header does not match the size of the HTTP message body after
+## re-assembling it (e.g., un-chunk-encoding).
+##
+## c: The connection.
+##
+## is_orig: True if the message was sent by the originator of the TCP connection.
+##
+## content_length_from_hdr: The numerical value extracted from the HTTP header.
+##
+## content_length_all_chunks: The numerical value calculated after all the chunks
+##                            are re-assembled.
+##
+## http_hdr: The string representing the original HTTP header line.
+##
+## http_hdr_len: The string length of the original HTTP header line.
+##
+## .. bro:see:: icap_body_weird icap_done icap_error icap_header icap_options
+##    icap_request_line icap_response_line
+##
+event icap_chunk_weird%(
+	c				: connection,
+	is_orig				: bool,
+	content_length_from_hdr		: int,
+	content_length_all_chunks	: int,
+	http_hdr			: string,
+	http_hdr_len			: int
+%);
+
+
+##
+## Generated for ICAP options.  This event is generated after the options'
+## body section is parsed. 
+##
+## c: The connection.
+##
+## is_orig: True if the message was sent by the originator of the TCP connection.
+##
+## opt_body: The string representing the body section.
+##
+## opt_body_len: The string length of the body section.
+##
+## .. bro:see:: icap_body_weird icap_chunk_weird icap_done icap_error icap_header
+##    icap_request_line icap_response_line
+##
+event icap_options%(
+	c			: connection,
+	is_orig			: bool,
+	opt_body		: string,
+	opt_body_len		: int
+%);
+
+
+##
+## Generated at end of processing a complete ICAP transaction, meaning an
+## ICAP request message followed by an ICAP response message.  This event
+## is generate after parsing the ICAP message body and after invoking the
+## HTTP protocol analyzer, indicating it is appropriate to write to the
+## ICAP log.
+##
+## c: The connection.
+##
+## is_orig: True if the most recent message processed was sent by the
+##          originator of the TCP connection.
+##
+## .. bro:see:: icap_body_weird icap_chunk_weird icap_error icap_header icap_options
+##    icap_request_line icap_response_line
+##
+event icap_done%(
+	c		: connection,
+	is_orig		: bool
+%);
+
+
+##
+## Generated for errors found when decoding ICAP requests or responses.
+##
+## c: The connection.
+##
+## is_orig: True if the most recent message processed was sent by the
+##          originator of the TCP connection.
+##
+## event_type: A string describing the general category of the problem found
+##             (e.g., ``illegal format``).
+##
+## error_detail: More detailed description of the error.
+##
+## .. bro:see:: icap_body_weird icap_chunk_weird icap_done icap_header icap_options
+##    icap_request_line icap_response_line
+##
+event icap_error%(
+	c		: connection,
+	is_orig		: bool,
+	error_type	: string,
+	error_detail	: string
+%);
+
+
+# end events.bif

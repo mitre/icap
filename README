@@ -1,0 +1,221 @@
+==================
+Bro ICAP Analyzer
+==================
+
+Copyright 2016 The MITRE Corporation.  All rights reserved.
+Approved for public release.  Distribution unlimited.  Case number 16-3871.
+
+==================
+Introduction
+==================
+Internet Content Adaptation Protocol (ICAP) Analyzer for the Bro Network 
+Security Monitor.
+
+The ICAP Analyzer was developed on a Bro v2.4.1 platform with BinPAC 
+v0.44, using the BinPAC Quick Start guide, and compiled directly into
+the Bro core.  Recommended for use with Bro v2.4.1 or later.
+
+The ICAP Analyzer Plugin was developed on a Bro v2.5-draft platform.
+The Plugin is NOT recommended for Bro v2.4.1 or earlier.  Requires
+Bro v2.5 or later.
+
+For more information about the ICAP analyzer, see the BroCon'16 abstract 
+and presentation slides posted on the Bro website, at the following URL:
+  - https://www.bro.org/community/brocon2016.html
+
+For more information about the ICAP protocol itself, see RFC 3507, dated 
+April 2003, along with the additional references listed below:
+  - https://tools.ietf.org/html/rfc3507
+  - https://tools.ietf.org/html/draft-stecher-icap-subid-00
+  - https://www.icap-forum.org/documents/specifications/
+    draft-icap-ext-partial-content-07.txt
+
+For more information on Bro Packages and Bro Plugins, see the following 
+references:
+  - https://github.com/bro/package-manager
+  - https://www.bro.org/sphinx/devel/plugins.html
+
+
+==============================
+Installation - 
+Plugin via Package Manager *
+==============================
+
+To install the ICAP Analyzer as a Plugin, use the Bro Package Manager to
+install the ICAP Analyzer Plugin on Bro v2.5 or later.
+
+For more information on how to install Bro Packages, see the following
+reference:
+  - https://github.com/bro/package-manager
+
+
+  * NOTE 1: Requires Bro v2.5 or later.
+    NOTE 2: On Bro v2.4.1, the Plugin encounters a discrepancy within
+    Bro's built-in regular-expression pattern-matching functionality,
+    and the ICAP packets parse incorrectly.  This behavior is observed
+    on v2.4.1 only when the ICAP Analyzer is implemented as a Plugin.
+    This behavior is not observed on v2.4.1 when the ICAP Analyzer is
+    compiled directly into the Bro core.  This issue appears to be
+    fixed on v2.5-beta.
+
+
+==============================
+Installation - 
+Plugin via Manual Method *
+==============================
+
+To install the ICAP Analyzer as a Plugin manually, see the Bro Plugin
+documentation at the following URL:
+  - https://www.bro.org/sphinx/devel/plugins.html
+
+
+  * NOTE 1: Requires Bro v2.5 or later.
+    NOTE 2: On Bro v2.4.1, the Plugin encounters a discrepancy within
+    Bro's built-in regular-expression pattern-matching functionality,
+    and the ICAP packets parse incorrectly.  This behavior is observed
+    on v2.4.1 only when the ICAP Analyzer is implemented as a Plugin.
+    This behavior is not observed on v2.4.1 when the ICAP Analyzer is
+    compiled directly into the Bro core.  This issue appears to be
+    fixed on v2.5-beta.
+
+
+==============================
+Installation - 
+Compile into Bro Core
+==============================
+
+To compile the ICAP Analyzer directly into the Bro core, follow Steps 1 
+thru 8 below.  Recommended for use with Bro v2.4.1 or later.
+
+The expression <bro_distro> denotes the path of the Bro distribution, 
+such as /opt/bro-2.4.1.
+
+The expression <bro_install> denotes the installation path after running
+'make install' on the source code, such as /usr/local/bro.
+
+
+--------------
+Step 1 - Root.
+--------------
+1.1 Change to the root account.
+
+1.2 Proceed to Step 2.
+
+
+------------------------------------------------
+Step 2 - Copy Source Files into Bro Source Tree.
+------------------------------------------------
+2.1 Create ICAP directories in the Bro source tree:
+    mkdir <bro_distro>/src/analyzer/protocol/icap
+    mkdir <bro_distro>/scripts/base/protocols/icap
+
+2.2 Copy the following ICAP files into the Bro src directory <bro_distro>/src/analyzer/protocol/icap:
+    ./CHANGES
+    ./COPYING
+    ./README
+    ./VERSION
+    ./src/CMakeLists.txt*
+    ./src/ICAP.cc
+    ./src/ICAP.h
+    ./src/Plugin.cc
+    ./src/events.bif
+    ./src/icap.pac
+    ./src/icap-analyzer.pac
+    ./src/icap-analyzer-http.pac
+    ./src/icap-analyzer-utils.pac
+    ./src/icap-protocol.pac
+
+  * NOTE: This file './src/CMakeLists.txt' is used for compiling the
+    ICAP Analyzer into the Bro Core.  The other file './CMakeLists.txt'
+    is used for building is as a Plugin.
+ 
+2.3 Copy the following ICAP files into the Bro scripts directory <bro_distro>/scripts/base/protocols/icap:
+    ./scripts/__load__.bro
+    ./scripts/dpd.bro
+    ./scripts/main.bro
+
+2.4 Proceed to Step 3.
+
+
+-----------------------------
+Step 3 - Edit Bro Build List.
+-----------------------------
+3.1 Edit the Bro file <bro_distro>src/analyzer/protocol/CMakelists.txt*
+    to add the following statement (in alphabetical order, between http
+    and icmp):
+    add_subdirectory(icap)
+
+  * NOTE: This is NOT the same file copied onto Bro in Step 2.2.
+    This file has the same name, but it is already on the system, 
+    one directory up.
+
+3.2 Save changes.
+
+3.3 Proceed to Step 4.
+
+
+-------------------------------
+Step 4 - Edit Bro Startup List.
+-------------------------------
+4.1 Edit the Bro file <bro_distro>/scripts/base/init-default.bro 
+    to add the following statement (in alphabetical order, between http
+    and irc):
+    @load base/protocols/icap
+
+4.2 Save changes.
+
+4.3 Proceed to Step 5.
+
+
+------------------------------------------------
+Step 5 - Add Custom Scripts to Bro Startup List.
+------------------------------------------------
+5.1 [Optional] Edit the Bro file <bro_install>/share/bro/site/local.bro
+    to load any custom Bro scripts related to ICAP analysis.
+
+5.2 [Optional] Save changes.
+
+5.3 Proceed to Step 6.
+
+
+---------------------
+Step 6 - Re-Make Bro.
+---------------------
+6.1 If Bro is already running, stop Bro, via the following command:
+    <bro_install>/bin/broctl stop
+
+6.2 Configure, make & install Bro:
+    cd <bro_distro>
+    ./configure  (NOTE: include any flags/options, if applicable)
+    make
+    make install
+
+6.3 [Optional] If using PF_RING, confirm Bro is linked with PF_RING 
+    libpcap:
+    ldd <bro_install>/bin/bro | grep pcap
+
+6.4 Proceed to Step 7.
+
+
+-------------------------------------
+Step 7 - Re-Start Bro via BroControl.
+-------------------------------------
+7.1 Start Bro:
+    <bro_install>/bin/broctl deploy
+
+7.2 Confirm Bro is running:
+    <bro_install>/bin/broctl status
+
+7.3 Confirm ICAP Analyzer is active:
+    <bro_install>/bin/bro -N | grep ICAP
+
+7.4 Proceed to Step 8.
+
+
+--------------
+Step 8 - Done.
+--------------
+8.1  Installation complete.  No further action required.
+
+
+#end README
