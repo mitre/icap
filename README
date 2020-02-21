@@ -1,6 +1,6 @@
-==================
-Bro ICAP Analyzer
-==================
+===============================
+ICAP Analyzer for Bro and Zeek
+===============================
 
 Copyright 2016 The MITRE Corporation.  All rights reserved.
 Approved for public release.  Distribution unlimited.  Case number 16-3871.
@@ -8,8 +8,8 @@ Approved for public release.  Distribution unlimited.  Case number 16-3871.
 ==================
 Introduction
 ==================
-Internet Content Adaptation Protocol (ICAP) Analyzer for the Bro Network 
-Security Monitor.
+Internet Content Adaptation Protocol (ICAP) Analyzer for the Bro and Zeek 
+Network Security Monitor.
 
 The ICAP Analyzer was developed on a Bro v2.4.1 platform with BinPAC 
 v0.44, using the BinPAC Quick Start guide, and compiled directly into
